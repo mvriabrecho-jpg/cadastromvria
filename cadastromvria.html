@@ -1,0 +1,342 @@
+<title>Sorteio MVRIA</title>
+<style>
+  :root{
+    --paper:#f7f0e2;
+    --card:#fffbf2;
+    --ink:#251a10;
+    --ink-soft:#6d5a44;
+    --gold:#a9772c;
+    --gold-bright:#c99a45;
+    --oxblood:#7c2c1f;
+    --teal:#1e4a41;
+    --line:rgba(37,26,16,.14);
+    --shadow:rgba(37,26,16,.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#14100b;
+      --card:#1e1811;
+      --ink:#f2e7d2;
+      --ink-soft:#c3ad8c;
+      --gold:#dba955;
+      --gold-bright:#eec177;
+      --oxblood:#e2836b;
+      --teal:#5cb5a2;
+      --line:rgba(242,231,210,.14);
+      --shadow:rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#14100b;
+    --card:#1e1811;
+    --ink:#f2e7d2;
+    --ink-soft:#c3ad8c;
+    --gold:#dba955;
+    --gold-bright:#eec177;
+    --oxblood:#e2836b;
+    --teal:#5cb5a2;
+    --line:rgba(242,231,210,.14);
+    --shadow:rgba(0,0,0,.5);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{ font-family:'Fraunces', Georgia, 'Times New Roman', serif; text-wrap:balance; margin:0; }
+  p{ margin:0; }
+  .mono{ font-family:'Space Mono', ui-monospace, 'SF Mono', Menlo, monospace; letter-spacing:.07em; }
+  img{max-width:100%;}
+  a{ color:inherit; }
+
+  .side{ padding-inline: max(20px, calc((100vw - 1040px)/2)); }
+
+  /* ============ HERO (deliberate dark scene, fixed palette) ============ */
+  .hero{
+    position:relative;
+    background:
+      radial-gradient(120% 90% at 18% 0%, rgba(217,169,85,.16), transparent 55%),
+      radial-gradient(140% 100% at 85% 15%, rgba(124,44,31,.28), transparent 60%),
+      linear-gradient(160deg,#241109 0%,#1a0f0c 46%,#120b09 100%);
+    color:#f4e9d6;
+    overflow:hidden;
+    padding-block: calc(56px + env(safe-area-inset-top,0px)) 0;
+  }
+  .hero::before{ /* film grain */
+    content:"";
+    position:absolute; inset:0;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/></svg>");
+    mix-blend-mode:overlay;
+    pointer-events:none;
+  }
+  .hero-inner{ position:relative; max-width:1040px; margin:0 auto; }
+  .kicker{
+    display:inline-flex; align-items:center; gap:10px;
+    font-size:12px; color:var(--gold-bright);
+    padding-bottom:18px;
+  }
+  .kicker .line{ width:28px; height:1px; background:var(--gold-bright); opacity:.7; }
+
+  .hero h1{
+    font-size:clamp(38px, 7.2vw, 74px);
+    line-height:1.02;
+    font-weight:500;
+    max-width:14ch;
+  }
+  .hero h1 em{
+    font-style:normal;
+    color:var(--gold-bright);
+    display:block;
+  }
+  .hero .lede{
+    margin-top:22px;
+    font-size:clamp(16px,2.2vw,19px);
+    line-height:1.55;
+    color:#e6d7bd;
+    max-width:46ch;
+  }
+
+  .hero-cta{ margin-top:34px; display:flex; flex-wrap:wrap; align-items:center; gap:18px; }
+  .btn-gold{
+    display:inline-flex; align-items:center; gap:10px;
+    background:linear-gradient(180deg,var(--gold-bright),var(--gold));
+    color:#211205; font-weight:600; font-size:16px;
+    padding:16px 26px; border-radius:999px; text-decoration:none;
+    box-shadow: 0 16px 30px -14px rgba(0,0,0,.55);
+    transition: transform .15s ease, box-shadow .15s ease;
+    border:none;
+  }
+  .btn-gold:hover{ transform:translateY(-2px); box-shadow:0 20px 34px -14px rgba(0,0,0,.6); }
+  .btn-gold:focus-visible{ outline:3px solid #f4e9d6; outline-offset:3px; }
+  .hero-cta .note{ font-size:13px; color:#c9b48f; }
+
+  /* rack illustration */
+  .rack-wrap{ margin-top:46px; }
+  .rack{ display:block; width:100%; height:auto; }
+
+  /* ============ MARQUEE STRIP ============ */
+  .marquee{
+    background:var(--oxblood);
+    color:#fbeee5;
+    overflow:hidden;
+    white-space:nowrap;
+    padding-block:11px;
+  }
+  .marquee-track{
+    display:inline-block;
+    animation: scroll 26s linear infinite;
+    font-size:13px;
+  }
+  .marquee-track span{ padding-inline:20px; }
+  @media (prefers-reduced-motion: reduce){ .marquee-track{ animation:none; } }
+  @keyframes scroll{ from{ transform:translateX(0);} to{ transform:translateX(-50%);} }
+
+  /* ============ STORY SECTION ============ */
+  .story{ padding-block:64px 12px; max-width:1040px; margin:0 auto; }
+  .story-grid{ display:grid; grid-template-columns: 1.1fr 1fr; gap:44px; align-items:start; }
+  @media (max-width:760px){ .story-grid{ grid-template-columns:1fr; } }
+  .eyebrow{
+    font-size:12px; text-transform:uppercase; color:var(--gold);
+    margin-bottom:14px; display:block;
+  }
+  .story h2{ font-size:clamp(26px,4vw,34px); font-weight:500; line-height:1.15; }
+  .story p{ margin-top:16px; color:var(--ink-soft); line-height:1.65; font-size:15.5px; }
+  .story .handle{ color:var(--oxblood); font-weight:600; }
+
+  .stat-card{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:26px; display:flex; flex-direction:column; gap:18px;
+  }
+  .stat-row{ display:flex; justify-content:space-between; align-items:baseline; border-bottom:1px dashed var(--line); padding-bottom:14px; }
+  .stat-row:last-child{ border-bottom:none; padding-bottom:0; }
+  .stat-row .num{ font-family:'Fraunces',serif; font-size:26px; color:var(--oxblood); }
+  .stat-row .lbl{ font-size:12.5px; color:var(--ink-soft); text-align:right; max-width:16ch; }
+
+  /* ============ BENEFITS ============ */
+  .benefits{ padding-block:56px; max-width:1040px; margin:0 auto; }
+  .benefits h2{ font-size:clamp(24px,3.6vw,30px); font-weight:500; max-width:20ch; margin-bottom:34px; }
+  .b-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+  @media (max-width:760px){ .b-grid{ grid-template-columns:1fr; } }
+  .b-card{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:26px 22px; position:relative;
+  }
+  .b-card .num-mark{ font-family:'Space Mono',monospace; font-size:12px; color:var(--gold); }
+  .b-card svg{ margin-block:14px; width:34px; height:34px; color:var(--teal); }
+  .b-card h3{ font-size:17px; font-weight:600; font-family:'Inter',sans-serif; }
+  .b-card p{ margin-top:8px; font-size:14px; color:var(--ink-soft); line-height:1.55; }
+
+  /* ============ STEPS ============ */
+  .steps{ padding-block:56px; max-width:1040px; margin:0 auto; }
+  .steps h2{ font-size:clamp(24px,3.6vw,30px); font-weight:500; margin-bottom:32px; }
+  .step-list{ display:flex; flex-direction:column; }
+  .step{
+    display:grid; grid-template-columns:52px 1fr; gap:18px;
+    padding-block:20px; border-top:1px solid var(--line);
+  }
+  .step:last-child{ border-bottom:1px solid var(--line); }
+  .step .n{ font-family:'Fraunces',serif; font-size:22px; color:var(--gold); }
+  .step h3{ font-size:16px; font-weight:600; font-family:'Inter',sans-serif; }
+  .step p{ margin-top:4px; font-size:14px; color:var(--ink-soft); max-width:56ch; line-height:1.5; }
+
+  /* ============ FINAL CTA ============ */
+  .final{
+    margin:0 20px 40px;
+    max-width:1000px;
+    margin-inline:auto;
+    background:linear-gradient(155deg,#241109,#1a0f0c);
+    color:#f4e9d6;
+    border-radius:22px;
+    padding:48px 30px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+  }
+  .final::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/></svg>");
+    mix-blend-mode:overlay;
+  }
+  .final-inner{ position:relative; max-width:520px; margin:0 auto; }
+  .final h2{ font-size:clamp(26px,4.4vw,36px); font-weight:500; }
+  .final h2 em{ font-style:normal; color:var(--gold-bright); }
+  .final p{ margin-top:14px; color:#e6d7bd; font-size:15px; line-height:1.6; }
+  .final .btn-gold{ margin-top:26px; }
+  .final .consent{ margin-top:18px; font-size:11.5px; color:#b39d78; line-height:1.6; max-width:44ch; margin-inline:auto; }
+
+  /* ============ FOOTER ============ */
+  footer{ padding-block:30px 50px; text-align:center; }
+  footer p{ font-size:12.5px; color:var(--ink-soft); }
+  footer .handle{ color:var(--oxblood); font-weight:600; }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap">
+
+<section class="hero">
+  <div class="side hero-inner">
+    <span class="kicker mono"><span class="line"></span>MVRIA BRECHÓ · CURADORIA VINTAGE, ATUAL &amp; OUTLET</span>
+    <h1>Toda peça tem uma história.<em>A sua começa aqui.</em></h1>
+    <p class="lede">Cadastre-se e concorra a <strong>R$100 por mês</strong>, além de ganhar <strong>2% de cashback</strong> em cada compra, em peças garimpadas com carinho, uma a uma, só pra você.</p>
+    <div class="hero-cta">
+      <a class="btn-gold" href="https://tictag.com.br/cadastro/eyJzdG9yZV9pZCI6NDQ2Mn0:1x91n1:dHAE8qgRkfUluwu807mZT7-hvYpzBhfAttbVgfx8YxQ/" target="_blank" rel="noopener">
+        Quero participar e ganhar cashback →
+      </a>
+      <span class="note">Cadastro leva 40 segundos</span>
+    </div>
+
+    <div class="rack-wrap" aria-hidden="true">
+      <svg class="rack" viewBox="0 0 1040 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <line x1="20" y1="26" x2="1020" y2="26" stroke="#7a5a34" stroke-width="3"/>
+        <g stroke="#dba955" stroke-width="2" opacity="0.9">
+          <line x1="110" y1="26" x2="130" y2="60"/>
+          <line x1="150" y1="26" x2="130" y2="60"/>
+        </g>
+        <path d="M90 60 Q130 40 170 60 L190 190 Q130 210 70 190 Z" fill="#7c2c1f" opacity="0.55"/>
+        <g stroke="#dba955" stroke-width="2" opacity="0.9">
+          <line x1="290" y1="26" x2="310" y2="55"/>
+          <line x1="330" y1="26" x2="310" y2="55"/>
+        </g>
+        <path d="M270 55 Q310 36 350 55 L360 230 L260 230 Z" fill="#1e4a41" opacity="0.5"/>
+        <g stroke="#dba955" stroke-width="2" opacity="0.9">
+          <line x1="470" y1="26" x2="490" y2="58"/>
+          <line x1="510" y1="26" x2="490" y2="58"/>
+        </g>
+        <path d="M450 58 Q490 38 530 58 L545 175 Q490 195 435 175 Z" fill="#c99a45" opacity="0.35"/>
+        <g stroke="#dba955" stroke-width="2" opacity="0.9">
+          <line x1="660" y1="26" x2="680" y2="55"/>
+          <line x1="700" y1="26" x2="680" y2="55"/>
+        </g>
+        <path d="M640 55 Q680 36 720 55 L735 220 L625 220 Z" fill="#7c2c1f" opacity="0.4"/>
+        <g stroke="#dba955" stroke-width="2" opacity="0.9">
+          <line x1="850" y1="26" x2="870" y2="60"/>
+          <line x1="890" y1="26" x2="870" y2="60"/>
+        </g>
+        <path d="M825 60 Q870 40 915 60 L930 195 Q870 215 810 195 Z" fill="#1e4a41" opacity="0.55"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track mono">
+    <span>SORTEIO R$100 / MÊS</span><span>·</span><span>CASHBACK EM TODA COMPRA</span><span>·</span><span>CURADORIA VINTAGE, ATUAL &amp; OUTLET</span><span>·</span>
+    <span>SORTEIO R$100 / MÊS</span><span>·</span><span>CASHBACK EM TODA COMPRA</span><span>·</span><span>CURADORIA VINTAGE, ATUAL &amp; OUTLET</span><span>·</span>
+  </div>
+</div>
+
+<section class="story side">
+  <div class="story-grid">
+    <div>
+      <span class="eyebrow mono">SOBRE O MVRIA</span>
+      <h2>Um brechó com curadoria de verdade, feito peça por peça.</h2>
+      <p>Cada peça do MVRIA passa pela nossa lavagem, passagem e reforma antes de chegar até você. Nada de garimpo genérico: é moda com história, escolhida a dedo pra quem gosta de vestir algo único.</p>
+      <p>Compre direto pelo nosso catálogo online ou pelo Instagram <span class="handle">@mvriabrecho</span>, e entre pro Grupo VIP pra ver as peças novas antes de todo mundo.</p>
+    </div>
+    <div class="stat-card">
+      <div class="stat-row"><span class="num mono">R$100</span><span class="lbl">sorteados todo mês entre cadastrados</span></div>
+      <div class="stat-row"><span class="num mono">2%</span><span class="lbl">de cashback em toda compra</span></div>
+      <div class="stat-row"><span class="num mono">100%</span><span class="lbl">das peças passam por curadoria manual</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="benefits side">
+  <h2>Por que vale a pena se cadastrar</h2>
+  <div class="b-grid">
+    <div class="b-card">
+      <span class="num-mark">01</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      <h3>Sorteio todo mês</h3>
+      <p>Basta estar cadastrado, sem pegadinha e sem compra mínima, pra concorrer aos R$100 do mês.</p>
+    </div>
+    <div class="b-card">
+      <span class="num-mark">02</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16v10H4z"/><path d="M4 11h16"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      <h3>2% de cashback</h3>
+      <p>Em toda compra pelo catálogo online, Instagram ou na loja física, uma parte volta pra você.</p>
+    </div>
+    <div class="b-card">
+      <span class="num-mark">03</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg>
+      <h3>Acesso antecipado</h3>
+      <p>Veja as peças recém-chegadas antes de irem pro Instagram, direto no seu WhatsApp.</p>
+    </div>
+  </div>
+</section>
+
+<section class="steps side">
+  <h2>Como funciona</h2>
+  <div class="step-list">
+    <div class="step">
+      <span class="n">1</span>
+      <div><h3>Preencha o cadastro</h3><p>Nome, WhatsApp, e-mail e seu estilo preferido. Leva menos de um minuto.</p></div>
+    </div>
+    <div class="step">
+      <span class="n">2</span>
+      <div><h3>Compre pelo catálogo, Instagram ou na loja</h3><p>A cada compra você ganha 2% de cashback e já concorre ao sorteio do mês.</p></div>
+    </div>
+    <div class="step">
+      <span class="n">3</span>
+      <div><h3>Aproveite</h3><p>Use o cashback quando quiser e fique de olho no WhatsApp pra saber se ganhou o sorteio.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="final side">
+  <div class="final-inner">
+    <h2>Pronta(o) pra <em>vestir a sorte?</em></h2>
+    <p>Cadastro rápido, sem custo, sem pegadinha. E já vale pro sorteio deste mês.</p>
+    <a class="btn-gold" href="https://tictag.com.br/cadastro/eyJzdG9yZV9pZCI6NDQ2Mn0:1x91n1:dHAE8qgRkfUluwu807mZT7-hvYpzBhfAttbVgfx8YxQ/" target="_blank" rel="noopener">
+      Fazer meu cadastro agora →
+    </a>
+    <p class="consent">Ao se cadastrar, você concorda com o uso dos seus dados para contato sobre a promoção, cashback e novidades do MVRIA, conforme a LGPD. Você pode pedir a remoção a qualquer momento.</p>
+  </div>
+</section>
+
+<footer>
+  <p>Feito à mão (e com carinho) pelo <span class="handle">@mvriabrecho</span></p>
+</footer>
